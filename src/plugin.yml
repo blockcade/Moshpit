@@ -1,0 +1,8 @@
+name: Moshpit
+version: 1.0
+api-version: 1.13
+main: net.blockcade.Moshpit.Main
+description: Moshpit main plugin
+commands:
+  game:
+    description: test
