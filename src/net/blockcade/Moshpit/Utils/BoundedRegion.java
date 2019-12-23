@@ -1,6 +1,10 @@
 package net.blockcade.Moshpit.Utils;
 
-import org.bukkit.*;
+import net.blockcade.Moshpit.Main;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -50,6 +54,27 @@ public class BoundedRegion {
             }
         }
         return players;
+    }
+
+    public void playParticleAtEdges(Color color){
+        Location point1 = pos1;
+        Location point2 = pos2;
+        Vector max = Vector.getMaximum(point1.toVector(), point2.toVector());
+        Vector min = Vector.getMinimum(point1.toVector(), point2.toVector());
+        int count = 0;
+
+        for (int x = min.getBlockX(); x <= max.getBlockX();x++) {
+            for (int y = 0; y <= max.getY(); y++) {
+                for (int z = min.getBlockZ(); z <= max.getBlockZ();z++) {
+                    if ((int) x == max.getX() || (int) x == min.getX() ||
+                            (int) y == max.getY() || (int) y == min.getY() + 1||
+                            (int) z == max.getZ() || (int) z == min.getZ()){
+                        count++;
+                        ParticleUtils.PingLocation(new Location(pos1.getWorld(),x,50,z), Main.current_point.getState().getColor(),10);
+                    }
+                }
+            }
+        }
     }
 
     public boolean inRegion(Location location) {

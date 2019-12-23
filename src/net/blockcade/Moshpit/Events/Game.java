@@ -1,6 +1,5 @@
 package net.blockcade.Moshpit.Events;
 
-import net.blockcade.Arcade.Managers.EventManager.GameEndEvent;
 import net.blockcade.Arcade.Managers.EventManager.GameStartEvent;
 import net.blockcade.Arcade.Managers.ScoreboardManager;
 import net.blockcade.Arcade.Utils.Formatting.Text;
@@ -10,22 +9,20 @@ import net.blockcade.Arcade.Varables.GameState;
 import net.blockcade.Arcade.Varables.TeamColors;
 import net.blockcade.Moshpit.Main;
 import net.blockcade.Moshpit.Utils.BoundedRegion;
-import net.blockcade.Moshpit.Utils.MoshPit;
 import net.blockcade.Moshpit.Utils.MoshPlayer;
 import net.blockcade.Moshpit.Utils.MoshTeam;
 import net.blockcade.Moshpit.Variables.Classes;
 import net.blockcade.Moshpit.Variables.Hardpoint;
 import net.blockcade.Moshpit.Variables.PointState;
 import net.minecraft.server.v1_15_R1.EntityShulker;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Campfire;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
@@ -40,6 +37,7 @@ public class Game implements Listener {
 
     private HashMap<Block, EntityShulker> GlowingBlocks = new HashMap<>();
 
+    /*
     @EventHandler
     public void GameEndEvent(GameEndEvent e){
         TeamColors winner = MoshPit.DetermineWinner();
@@ -63,7 +61,7 @@ public class Game implements Listener {
             Text.sendMessage(player, "&aBetter luck next time", Text.MessageType.SUBTITLE);
             player.playSound(player.getLocation(),Sound.ENTITY_DONKEY_HURT,0.5f,0.5f);
         }
-    }
+    }*/
 
     @EventHandler
     public void GameStartEvent(GameStartEvent event){
@@ -116,7 +114,7 @@ public class Game implements Listener {
             // Scoreboard //
             ScoreboardManager sm = new ScoreboardManager("G" + player.getName(), game);
             sm.setGamePlayer(moshPlayer);
-            sm.registerPlaceholder((p)-> String.valueOf(JavaUtils.FormatMS((long)Main.current_point.getTime()*100, JavaUtils.TimeUnit.SECOND)),":POINT_TIME:");
+            sm.registerPlaceholder((p)-> String.valueOf(JavaUtils.FormatMS((long) Main.current_point.getTime()*100, JavaUtils.TimeUnit.SECOND)),":POINT_TIME:");
             sm.registerPlaceholder((p)-> Main.current_point.getState().getFormatted(),":POINT_STATE:");
             sm.registerPlaceholder((p)-> Main.teams.containsKey(RED)?String.valueOf(Main.teams.get(RED).getScore()):"",":RED_SCORE:");
             sm.registerPlaceholder((p)-> Main.teams.containsKey(BLUE)?String.valueOf(Main.teams.get(BLUE).getScore()):"",":BLUE_SCORE:");
@@ -126,7 +124,7 @@ public class Game implements Listener {
             sm.addBlank();
 
             sm.addLine("&e&lTime left");
-            sm.addLine("  &f:POINT_TIME:");
+            sm.addLine("  &f:POINT_TIME: Seconds");
             sm.addBlank();
             sm.addLine("&c&lRED");
             sm.addLine("&r  &f:RED_SCORE: Points");
@@ -156,6 +154,7 @@ public class Game implements Listener {
 
         // Main game tick
         new BukkitRunnable(){
+            int second = 0;
             @Override
             public void run() {
                 if(!game.GameState().equals(GameState.IN_GAME)){Bukkit.broadcastMessage("Thread exited");cancel();return;}
@@ -166,11 +165,11 @@ public class Game implements Listener {
                     int selection = id;
                     while (id==selection)
                         selection=new Random().nextInt(Main.points.size());
-                    setPoint(new Random().nextInt(Main.points.size()));
+                    setPoint(selection);
                     return;
                 }
                 if(Main.current_point.getHolding_team()!=null) {
-                    Main.current_point.tickTime(1);
+                    Main.current_point.tickTime(0.5);
                     if(PointPlayerCount()>=3){
                         Main.teams.get(Main.current_point.getHolding_team()).addScore(0.10);
                     }else if(PointPlayerCount()==2){
@@ -182,10 +181,13 @@ public class Game implements Listener {
                     }
                 }
 
+                for(Player player : Bukkit.getOnlinePlayers())
+                    player.setCompassTarget(Main.current_point.getFire().getLocation());
+
                 if(Main.hologram!=null){
                     Main.hologram.editLine(0,Main.current_point.getState().getChatColor()+"HARDPOINT");
                 }
-
+/*
                 if(Main.teams.get(RED).getScore()>=260||Main.teams.get(BLUE).getScore()==260){
                     // Game Finished
                     if(Main.teams.get(RED).getScore()>=260){
@@ -196,9 +198,15 @@ public class Game implements Listener {
                     game.stop(true,true);
                 }
 
+ */
+                // Show Particles at edges
+                //if(second==19)Main.current_point.getLocation().playParticleAtEdges(Main.current_point.getState().getColor());
+
                 Text.sendAll(String.format("&e%s &7: %s", JavaUtils.FormatMS((long)Main.current_point.getTime()*100, JavaUtils.TimeUnit.SECOND),Main.current_point.getState().getFormatted()), Text.MessageType.ACTION_BAR);
+                second++;
+                if(second>=20)second=0;
             }
-        }.runTaskTimer(game.handler(),0L,1L);
+        }.runTaskTimer(game.handler(),0L,0L);
 
     }
 

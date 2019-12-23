@@ -56,7 +56,7 @@ public class Hardpoint {
     public void resetTime() {
         this.time = Main.BASE_POINT_TIME*20;
     }
-    public void tickTime(int i) {
+    public void tickTime(double i) {
         this.time = this.time-i;
     }
 }
