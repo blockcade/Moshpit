@@ -47,6 +47,7 @@ public class Classes {
     public static void GiveClass(CLASS c, Player player){
         player.getInventory().clear();
         player.getInventory().setArmorContents(Main.game.TeamManager().getArmor(Main.game.TeamManager().getTeam(player)));
+        player.getInventory().setItem(17, net.blockcade.Moshpit.Variables.Menus.Classes.getItem());
         player.getInventory().setItem(8,new ItemStack(Material.COMPASS));
         player.setCompassTarget(Main.current_point.getFire().getLocation());
         switch (c){

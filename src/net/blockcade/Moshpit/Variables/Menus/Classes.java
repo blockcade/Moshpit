@@ -7,8 +7,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 public class Classes {
+    static ItemStack item;
+    public static ItemStack getItem() {
+        if(item!=null)return item;
+        Item kit_selector = new Item(Material.WRITABLE_BOOK,"&cKit Selector");
+        kit_selector.setLore("&7 Select from a wide variety","&7of kits pre-made to","help you dominate the enemy","","&aClick to open");
+        kit_selector.setOnClick((p)->p.openInventory(net.blockcade.Moshpit.Variables.Menus.Classes.getMenu(p)));
+        item=kit_selector.spigot();
+        return item;
+    }
 
     public static Inventory getMenu(Player player){
         Inventory inventory = Bukkit.createInventory(null,27, Text.format("&cClass Selector"));

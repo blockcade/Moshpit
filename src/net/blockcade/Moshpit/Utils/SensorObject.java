@@ -5,6 +5,8 @@ import net.blockcade.Arcade.Varables.TeamColors;
 import net.blockcade.Moshpit.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.*;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Collection;
@@ -36,6 +38,8 @@ public class SensorObject {
                     if(e1 instanceof Player && Main.game.TeamManager().hasTeam((Player)e1) && Main.game.TeamManager().getTeam((Player)e1)==team)continue;
                     destroyed=true;
                     Bukkit.broadcastMessage(Text.format("&c&lSTUNNED &7"+e1.getName()+" has been stunned"));
+                    assert e1 instanceof Player;
+                    ((Player)e1).addPotionEffect(new PotionEffect(PotionEffectType.SLOW,60,10),true);
                 }
             }
         }.runTaskTimer(Main.game.handler(),0L,20L);

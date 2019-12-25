@@ -1,6 +1,8 @@
 package net.blockcade.Moshpit.Events;
 
+import net.blockcade.Arcade.Managers.EventManager.GameEndEvent;
 import net.blockcade.Arcade.Managers.EventManager.GameStartEvent;
+import net.blockcade.Arcade.Managers.GamePlayer;
 import net.blockcade.Arcade.Managers.ScoreboardManager;
 import net.blockcade.Arcade.Utils.Formatting.Text;
 import net.blockcade.Arcade.Utils.GameUtils.Hologram;
@@ -9,20 +11,22 @@ import net.blockcade.Arcade.Varables.GameState;
 import net.blockcade.Arcade.Varables.TeamColors;
 import net.blockcade.Moshpit.Main;
 import net.blockcade.Moshpit.Utils.BoundedRegion;
+import net.blockcade.Moshpit.Utils.MoshPit;
 import net.blockcade.Moshpit.Utils.MoshPlayer;
 import net.blockcade.Moshpit.Utils.MoshTeam;
 import net.blockcade.Moshpit.Variables.Classes;
 import net.blockcade.Moshpit.Variables.Hardpoint;
 import net.blockcade.Moshpit.Variables.PointState;
 import net.minecraft.server.v1_15_R1.EntityShulker;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Campfire;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
@@ -37,36 +41,35 @@ public class Game implements Listener {
 
     private HashMap<Block, EntityShulker> GlowingBlocks = new HashMap<>();
 
-    /*
     @EventHandler
-    public void GameEndEvent(GameEndEvent e){
+    public void GameFinish(GameEndEvent e){
         TeamColors winner = MoshPit.DetermineWinner();
-        TeamColors looser = winner.equals(RED)?RED:BLUE;
 
-        for(Player player : game.TeamManager().getTeamPlayers(winner)){
-            Text.sendMessage(player,"&6VICTORY", Text.MessageType.TITLE);
-            Text.sendMessage(player, "&aYou are the WINNER!", Text.MessageType.SUBTITLE);
-            Location loc = player.getLocation();
-            Firework fw = (Firework) loc.getWorld().spawnEntity(loc, EntityType.FIREWORK);
-            FireworkMeta fwm = fw.getFireworkMeta();
+        for(Player ep : Bukkit.getOnlinePlayers()){
+            GamePlayer player = GamePlayer.getGamePlayer(ep);
 
-            fwm.setPower(2);
-            fwm.addEffect(FireworkEffect.builder().withColor(Color.LIME).flicker(true).build());
+            if(player.getTeam().equals(winner)){
+                Text.sendMessage(player.getPlayer(),"&6VICTORY", Text.MessageType.TITLE);
+                Text.sendMessage(player.getPlayer(), "&aYou are the WINNER!", Text.MessageType.SUBTITLE);
+                Location loc = player.getLocation();
+                Firework fw = (Firework) loc.getWorld().spawnEntity(loc, EntityType.FIREWORK);
+                FireworkMeta fwm = fw.getFireworkMeta();
 
-            fw.setFireworkMeta(fwm);
-            fw.detonate();
+                fwm.setPower(2);
+                fwm.addEffect(FireworkEffect.builder().withColor(Color.LIME).flicker(true).build());
+
+                fw.setFireworkMeta(fwm);
+                fw.detonate();
+            }else {
+                Text.sendMessage(player.getPlayer(), "&cYou Lose", Text.MessageType.TITLE);
+                Text.sendMessage(player.getPlayer(), "&aBetter luck next time", Text.MessageType.SUBTITLE);
+                player.playSound(Sound.ENTITY_DONKEY_HURT,0.5f,0.5f);
+            }
         }
-        for(Player player : game.TeamManager().getTeamPlayers(looser)){
-            Text.sendMessage(player, "&cYou Lose", Text.MessageType.TITLE);
-            Text.sendMessage(player, "&aBetter luck next time", Text.MessageType.SUBTITLE);
-            player.playSound(player.getLocation(),Sound.ENTITY_DONKEY_HURT,0.5f,0.5f);
-        }
-    }*/
+    }
 
     @EventHandler
     public void GameStartEvent(GameStartEvent event){
-
-        Bukkit.broadcastMessage("Loading Moshpit");
 
         List<String> spawns = game.handler().getConfig().getStringList("maps."+game.map().getName()+".SPAWN");
         for(int i=0;i<spawns.size();i++){
@@ -187,8 +190,8 @@ public class Game implements Listener {
                 if(Main.hologram!=null){
                     Main.hologram.editLine(0,Main.current_point.getState().getChatColor()+"HARDPOINT");
                 }
-/*
-                if(Main.teams.get(RED).getScore()>=260||Main.teams.get(BLUE).getScore()==260){
+
+                if(Main.teams.get(RED).getScore()>=260||Main.teams.get(BLUE).getScore()>=260){
                     // Game Finished
                     if(Main.teams.get(RED).getScore()>=260){
                         game.TeamManager().doEliminateTeam(BLUE);
@@ -198,7 +201,6 @@ public class Game implements Listener {
                     game.stop(true,true);
                 }
 
- */
                 // Show Particles at edges
                 //if(second==19)Main.current_point.getLocation().playParticleAtEdges(Main.current_point.getState().getColor());
 

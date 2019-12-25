@@ -1,20 +1,19 @@
 package net.blockcade.Moshpit.Events;
 
 import net.blockcade.Arcade.Managers.EventManager.PlayerRespawnEvent;
-import net.blockcade.Arcade.Utils.Formatting.Item;
 import net.blockcade.Arcade.Utils.Formatting.Text;
 import net.blockcade.Arcade.Utils.GameUtils.Spectator;
-import net.blockcade.Arcade.Utils.JavaUtils;
 import net.blockcade.Arcade.Varables.TeamColors;
 import net.blockcade.Moshpit.Main;
 import net.blockcade.Moshpit.Utils.MoshPlayer;
 import net.blockcade.Moshpit.Utils.SensorObject;
-import net.blockcade.Moshpit.Variables.Menus.Classes;
 import net.blockcade.Moshpit.Variables.PointState;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ThrownPotion;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityShootBowEvent;
@@ -42,11 +41,7 @@ public class Player implements Listener {
     @EventHandler
     public void PlayerJoin(PlayerJoinEvent e){
         MoshPlayer.getMoshPlayer(e.getPlayer());
-        Item item = new Item(Material.DIAMOND_SWORD,"&cClass Selection");
-        item.setOnClick((p)->{
-            p.openInventory(Classes.getMenu(p));
-        });
-        e.getPlayer().getInventory().addItem(item.spigot());
+        e.getPlayer().getInventory().setItem(0, net.blockcade.Moshpit.Variables.Menus.Classes.getItem());
     }
 
     @EventHandler
@@ -98,6 +93,15 @@ public class Player implements Listener {
         PlayerInventory playerInventory = (e.getPlayer()).getInventory();
         org.bukkit.entity.Player player = e.getPlayer();
 
+
+        if(playerInventory.getItemInMainHand().getType().equals(Material.SPLASH_POTION)){
+            ThrownPotion potion = (ThrownPotion)player.getLocation().getWorld().spawnEntity(player.getLocation().add(0,2,0), EntityType.SPLASH_POTION);
+            potion.setItem(playerInventory.getItemInMainHand());
+            potion.setVelocity(player.getLocation().getDirection().toBlockVector().multiply(1));
+            playerInventory.getItemInMainHand().setAmount(playerInventory.getItemInMainHand().getAmount()-1);
+            e.setUseItemInHand(Event.Result.DENY);
+        }
+
         if(playerInventory.getItemInMainHand().getType().equals(Material.PLAYER_HEAD)){
             if(ChatColor.stripColor(playerInventory.getItemInMainHand().getItemMeta().getDisplayName()).equalsIgnoreCase("Stun Trap")){
                 // Stun Trap
@@ -108,21 +112,22 @@ public class Player implements Listener {
                     placeAt=e.getClickedBlock().getLocation();
                 }
 
-                ArmorStand ent =(ArmorStand) Main.game.EntityManager().CreateEntity(placeAt, EntityType.ARMOR_STAND,"STUN TRAP");
+                ArmorStand ent =(ArmorStand) Main.game.EntityManager().CreateEntity(placeAt.getWorld().getHighestBlockAt((int)placeAt.getX(),(int)placeAt.getZ()).getLocation().add(0,0.5,0), EntityType.ARMOR_STAND,"STUN TRAP");
                 ent.setSmall(true);
                 ent.setGravity(false);
                 ent.setMarker(true);
                 ent.setCanMove(false);
                 ent.setCustomNameVisible(false);
-                ent.teleport(Objects.requireNonNull(JavaUtils.getBlockInDirection(JavaUtils.Direction.DOWN, ent.getLocation())).getLocation().add(0,0.5,0));
 
-                SensorObject obj = new SensorObject(Main.game.TeamManager().getTeam(player),ent,100,75,EntityType.PLAYER);
+                SensorObject obj = new SensorObject(Main.game.TeamManager().getTeam(player),ent,3,180,EntityType.PLAYER);
                 Main.game.EntityManager().setFunction(ent,(p)->{
                     Text.sendMessage(p,"&c&lMARKED&7 You have marked "+ent.getCustomName()+"&7 for everyone", Text.MessageType.TEXT_CHAT);
                     obj.setMarked(true);
                 });
                 ent.setHelmet(e.getItem());
                 ent.setVisible(false);
+
+                playerInventory.getItemInMainHand().setAmount(playerInventory.getItemInMainHand().getAmount()-1);
 
                 Text.sendMessage(player,"&d&lTRAP ARMED&7 Any crossing player will now set off the STUN TRAP", Text.MessageType.TEXT_CHAT);
             }
@@ -158,7 +163,7 @@ public class Player implements Listener {
         PotionMeta im = (PotionMeta)is.getItemMeta();
         if(im.getColor().equals(Color.BLACK)){
             // Blackout Grenade
-            for(Entity ent : e.getEntity().getLocation().getNearbyEntities(5,5,5)){
+            for(Entity ent : e.getEntity().getLocation().getNearbyEntities(10,10,10)){
                 if(!(ent instanceof org.bukkit.entity.Player))return;
                 org.bukkit.entity.Player player = (org.bukkit.entity.Player) ent;
 
@@ -169,7 +174,7 @@ public class Player implements Listener {
             }
         }else if(im.getColor().equals(Color.LIME)){
             // Sensor Grenade
-            for(Entity ent : e.getEntity().getLocation().getNearbyEntities(5,5,5)){
+            for(Entity ent : e.getEntity().getLocation().getNearbyEntities(10,10,10)){
                 if(!(ent instanceof org.bukkit.entity.Player))return;
                 org.bukkit.entity.Player player = (org.bukkit.entity.Player) ent;
 

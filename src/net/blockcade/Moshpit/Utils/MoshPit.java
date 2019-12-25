@@ -5,6 +5,8 @@ import net.blockcade.Arcade.Varables.TeamColors;
 import net.blockcade.Moshpit.Main;
 import org.bukkit.event.EventHandler;
 
+import static net.blockcade.Arcade.Varables.TeamColors.*;
+
 public class MoshPit {
 
     @EventHandler
@@ -13,16 +15,16 @@ public class MoshPit {
     }
 
     public static TeamColors DetermineWinner() {
-
-        if(Main.teams.get(TeamColors.RED).getScore()>Main.teams.get(TeamColors.BLUE).getScore()){
+        if(!Main.teams.containsKey(RED)||!Main.teams.containsKey(TeamColors.BLUE))return null;
+        if(Main.teams.get(RED).getScore()>Main.teams.get(TeamColors.BLUE).getScore()){
             // Red Wins
-            return TeamColors.RED;
-        }else if(Main.teams.get(TeamColors.RED).getScore()<Main.teams.get(TeamColors.BLUE).getScore()){
+            return RED;
+        }else if(Main.teams.get(RED).getScore()<Main.teams.get(TeamColors.BLUE).getScore()){
             // Red Wins
             return TeamColors.BLUE;
         }else {
             // Tie (I vote red team)
-            return TeamColors.RED;
+            return RED;
         }
 
     }
